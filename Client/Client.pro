@@ -37,3 +37,31 @@ HEADERS  += mainwindow.h \
 FORMS    += mainwindow.ui \
     progresswindow.ui \
     login.ui
+
+
+unix {
+    # Variables
+    isEmpty(PREFIX) {
+        PREFIX = /usr/local
+    }
+    BINDIR  = $$PREFIX/bin
+    DATADIR = $$PREFIX/share
+    CONFDIR = /etc
+    isEmpty(VARDIR) {
+        VARDIR  = /var/lib/$${TARGET}
+    }
+
+    # Install
+    INSTALLS += target config vardir
+
+    ## Instalar ejecutable
+    target.path = $$BINDIR
+
+    ## Instalar archivo de configuración
+    config.path = $$CONFDIR
+    config.files += $${TARGET}.conf
+
+    ## Crear directorio de archivos variables
+    vardir.path = $$VARDIR
+    vardir.commands = true
+}
