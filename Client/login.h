@@ -22,11 +22,17 @@ private slots:
     void on_LogInButton_clicked();
     void on_NameEdit_returnPressed();
 
+    void on_RegisterButton_clicked();
+
+    void on_PassEdit_returnPressed();
+
 private:
     Ui::Login *ui;
 
     //Var comprobacion
     bool Ok;
+
+    void check();
 
 protected:
     //Sobreescribir

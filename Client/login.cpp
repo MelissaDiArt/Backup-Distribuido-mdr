@@ -16,13 +16,7 @@ Login::~Login()
 
 void Login::on_LogInButton_clicked()
 {
-    if(ui->NameEdit->text() != ""){
-        emit Name(ui->NameEdit->text());
-        Ok = true;
-        this->close();
-    }else{
-        QMessageBox::warning(this, "Error", "You must introduce a name", QMessageBox::Ok);
-    }
+    check();
 }
 
 void Login::closeEvent(QCloseEvent *event)
@@ -35,11 +29,26 @@ void Login::closeEvent(QCloseEvent *event)
 
 void Login::on_NameEdit_returnPressed()
 {
-    if(ui->NameEdit->text() != ""){
+    check();
+}
+
+void Login::on_RegisterButton_clicked()
+{
+    check();
+}
+
+void Login::check()
+{
+    if(ui->NameEdit->text() != "" && ui->PassEdit->text() != ""){
         emit Name(ui->NameEdit->text());
         Ok = true;
         this->close();
     }else{
-        QMessageBox::warning(this, "Error", "You must introduce a name", QMessageBox::Ok);
+        QMessageBox::warning(this, "Error", "You must introduce a name and password", QMessageBox::Ok);
     }
+}
+
+void Login::on_PassEdit_returnPressed()
+{
+    check();
 }

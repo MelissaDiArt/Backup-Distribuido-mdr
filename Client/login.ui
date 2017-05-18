@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>166</height>
+    <width>420</width>
+    <height>224</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -30,14 +30,35 @@
      <widget class="QLineEdit" name="NameEdit"/>
     </item>
     <item>
-     <widget class="QPushButton" name="LogInButton">
-      <property name="focusPolicy">
-       <enum>Qt::TabFocus</enum>
-      </property>
+     <widget class="QLabel" name="label_2">
       <property name="text">
-       <string>Log In</string>
+       <string>And password:</string>
       </property>
      </widget>
+    </item>
+    <item>
+     <widget class="QLineEdit" name="PassEdit"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="LogInButton">
+        <property name="focusPolicy">
+         <enum>Qt::TabFocus</enum>
+        </property>
+        <property name="text">
+         <string>Log In</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="RegisterButton">
+        <property name="text">
+         <string>Register</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </item>
    </layout>
   </widget>
@@ -46,8 +67,8 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>400</width>
-     <height>17</height>
+     <width>420</width>
+     <height>22</height>
     </rect>
    </property>
   </widget>
