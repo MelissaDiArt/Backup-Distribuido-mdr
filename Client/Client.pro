@@ -42,7 +42,7 @@ FORMS    += mainwindow.ui \
 unix {
     # Variables
     isEmpty(PREFIX) {
-        PREFIX = /usr/local
+        PREFIX = /usr
     }
     BINDIR  = $$PREFIX/bin
     DATADIR = $$PREFIX/share
@@ -52,14 +52,21 @@ unix {
     }
 
     # Install
-    INSTALLS += target config vardir
-
+    INSTALLS += target config vardir desktop icon32
     ## Instalar ejecutable
     target.path = $$BINDIR
 
     ## Instalar archivo de configuración
     config.path = $$CONFDIR
     config.files += $${TARGET}.conf
+
+    ## Instalar acceso directo en el menú del escritorio
+    desktop.path = $$DATADIR/applications
+    desktop.files += $${TARGET}.desktop
+
+    ## Instalar icono de aplicación
+    icon32.path = $$DATADIR/icons/hicolor/32x32/apps
+    icon32.files += ./data/32x32/$${TARGET}.png
 
     ## Crear directorio de archivos variables
     vardir.path = $$VARDIR

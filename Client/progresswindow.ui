@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string/>
   </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>data/32x32/Client.png</normaloff>data/32x32/Client.png</iconset>
+  </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
@@ -152,7 +156,7 @@
      <x>0</x>
      <y>0</y>
      <width>486</width>
-     <height>22</height>
+     <height>17</height>
     </rect>
    </property>
   </widget>

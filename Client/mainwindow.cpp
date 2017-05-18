@@ -6,6 +6,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
     ui->PortNumber->setMinimum(1024);
     ui->PortNumber->setMaximum(65536);
 

@@ -5,6 +5,7 @@
 #include <QtNetwork>
 #include <QFileDialog>
 #include <QLocale>
+#include <QIcon>
 
 #include "progresswindow.h"
 #include "readfile.h"
