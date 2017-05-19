@@ -40,12 +40,14 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
     KeepAlive.start();
+
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
     delete Server;
+    closelog();
 }
 
 void MainWindow::on_ConnectButton_clicked()

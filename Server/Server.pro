@@ -8,7 +8,7 @@ QT       += core gui network
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-TARGET = Server
+TARGET = Distributed-Backup-Server
 TEMPLATE = app
 
 # The following define makes your compiler emit warnings if you use
@@ -29,3 +29,33 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
+unix {
+    # Variables
+    isEmpty(PREFIX) {
+        PREFIX = /usr
+    }
+    BINDIR  = $$PREFIX/bin
+    CONFDIR = /etc
+    isEmpty(VARDIR) {
+        VARDIR  = /var/lib/$${TARGET}
+    }
+
+    # Install
+    INSTALLS += target config vardir script
+    ## Instalar ejecutable
+    target.path = $$BINDIR
+
+    ## Instalar archivo de configuración
+    config.path = $$CONFDIR
+    config.files += $${TARGET}.conf
+
+    ## Crear directorio de archivos variables
+    vardir.path = $$VARDIR
+    vardir.commands = true
+
+    ## Mover el scrip de arranque a su carpeta destino
+    script.path = $$CONFDIR/init.d
+    script.files += $${TARGET}
+    ##Asociar el fichero al arranque
+}

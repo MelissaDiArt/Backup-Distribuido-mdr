@@ -7,6 +7,9 @@ Login::Login(QWidget *parent) :
 {
     ui->setupUi(this);
     Ok = false;
+
+    QIcon icon("../Client/data/32x32/Client.png");
+    this->setWindowIcon(icon);
 }
 
 Login::~Login()

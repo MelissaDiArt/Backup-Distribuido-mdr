@@ -11,6 +11,9 @@ ProgressWindow::ProgressWindow(QWidget *parent) :
     TotalSize = 0;
     CurrentTotalRW = 0;
     Name = "";
+
+    QIcon icon("../Client/data/32x32/Client.png");
+    this->setWindowIcon(icon);
 }
 
 ProgressWindow::~ProgressWindow()

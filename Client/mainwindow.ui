@@ -13,10 +13,6 @@
   <property name="windowTitle">
    <string>Client</string>
   </property>
-  <property name="windowIcon">
-   <iconset>
-    <normaloff>data/32x32/Client.png</normaloff>data/32x32/Client.png</iconset>
-  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>

@@ -7,6 +7,9 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    QIcon icon("../Client/data/32x32/Client.png");
+    this->setWindowIcon(icon);
+
     ui->PortNumber->setMinimum(1024);
     ui->PortNumber->setMaximum(65536);
 

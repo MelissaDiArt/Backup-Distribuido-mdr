@@ -5,6 +5,7 @@
 #include <QtNetwork>
 #include <QMessageBox>
 #include <QPair>
+#include <syslog.h>
 
 namespace Ui {
 class MainWindow;
