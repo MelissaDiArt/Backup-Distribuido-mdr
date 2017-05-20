@@ -60,7 +60,7 @@ public slots:
     void TTerminated();
 
     //cambiar nombre
-    void Name(QString name);
+    void Name(QChar option, QString name, QString pass);
 
 private:
     Ui::MainWindow *ui;
@@ -87,8 +87,7 @@ private:
     bool isReceiving;
     bool connected;
     bool Nack;
-
-    bool perder;
+    bool TryRegister;
 
     //Ventana de progreso
     ProgressWindow progressWindow;

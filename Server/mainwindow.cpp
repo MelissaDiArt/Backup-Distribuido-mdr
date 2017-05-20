@@ -12,6 +12,25 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->PortNumber->setMinimum(1024);
     ui->PortNumber->setMaximum(65536);
 
+    Database = QSqlDatabase::addDatabase("QSQLITE", "Auth");
+    Database.setDatabaseName("ServerAuth");
+
+    bool exits = QFile("ServerAuth").exists();
+
+    if(Database.open()){
+        QSqlQuery query(Database);
+
+        if(!exits){
+            if(query.exec("CREATE TABLE Clients "
+                          "(NAME VARCHAR(30) PRIMARY KEY,"
+                          "PASS VARCHAR(30));")){
+                QMessageBox::warning(this, "Database", "Database and table created", QMessageBox::Ok);
+            }
+        }
+    }else{
+        QMessageBox::warning(this, "Database", "Cannot open or create the database", QMessageBox::Ok);
+    }
+
     Server = new QUdpSocket(this);
 
     canSend = true;
@@ -32,7 +51,12 @@ MainWindow::MainWindow(QWidget *parent) :
         if(canSend){
             canSend = false;
             for(auto client : Clients){
-                Server->writeDatagram(QByteArray("Keep Alive?"), client.first, client.second);
+                qint64 bytessended = Server->writeDatagram(QByteArray("Keep Alive?"), client.first, client.second);
+                if( bytessended == -1){
+                    QMessageBox::warning(this, "Error",
+                                         Server->errorString(),
+                                         QMessageBox::Ok);
+                }
             }
             MaxTimeAlive.start();
         }else{
@@ -82,39 +106,196 @@ void MainWindow::Read()
             }
 
             if(!exist){
-                bytessended = Server->writeDatagram(QByteArray("Connected client ").append(Server->localAddress().toString()).append("::").append(Server->localPort()), sendDir, sendPort);
+                bytessended = Server->writeDatagram(QByteArray("Need Auth"),
+                                                    sendDir, sendPort);
 
                 if( bytessended == -1){
                     QMessageBox::warning(this, "Error",
                                          Server->errorString(),
                                          QMessageBox::Ok);
                 }
+            }
+        }else if(data.startsWith("LogIn")){
+            data.remove(0, data.indexOf(":")+2);
+            QString name(data);
 
-                if(canSend){
-                    Clients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
-                    ClientNumber++;
+            name.remove(name.indexOf("/"), name.size());
 
-                    if(WaitingClients.size()>0){
-                        for(int i=0; i<WaitingClients.size(); i++){
-                            if((ClientNumber>=(DestNumber[i]+1))&&canSend){
-                                bytessended = Server->writeDatagram(QByteArray("Ready Clients"), WaitingClients[i].first, WaitingClients[i].second);
+            QString pass(data);
 
-                                if( bytessended == -1){
-                                    QMessageBox::warning(this, "Error",
-                                                         Server->errorString(),
-                                                         QMessageBox::Ok);
-                                }
+            pass.remove(0, pass.indexOf("/")+1);
 
-                                WaitingClients.remove(i);
-                                DesNumber = DestNumber[i];
-                                DestNumber.remove(i);
-                                canSend = false;
-                                break;
-                            }
-                        }
+            bool found = false;
+            for(auto Name: ClientsNames){
+                if(Name == name){
+                    found = true;
+                }
+            }
+
+            if(!found){
+                QSqlQuery query(Database);
+
+                query.prepare("SELECT * FROM Clients "
+                              "WHERE NAME = :name AND PASS = :pass");
+                query.bindValue(":name", name);
+                query.bindValue(":pass", pass);
+
+                if(!query.exec()){
+                    qint64 bytessended = Server->writeDatagram(QByteArray("Cannot LogIn"),
+                                                        sendDir, sendPort);
+
+                    if( bytessended == -1){
+                        QMessageBox::warning(this, "Error",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
                     }
                 }else{
-                    NewClients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
+                    if(!query.seek(1) && query.seek(0)){
+                        ClientsNames.push_back(name);
+
+                        qint64 bytessended = Server->writeDatagram(QByteArray("Connected client ")
+                                                            .append(Server->localAddress().toString())
+                                                            .append("::").append(Server->localPort()),
+                                                            sendDir, sendPort);
+
+                        if( bytessended == -1){
+                            QMessageBox::warning(this, "Error",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        }
+
+                        if(canSend){
+                            Clients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
+                            ClientNumber++;
+
+                            if(WaitingClients.size()>0){
+                                for(int i=0; i<WaitingClients.size(); i++){
+                                    if((ClientNumber>=(DestNumber[i]+1))&&canSend){
+                                        bytessended = Server->writeDatagram(QByteArray("Ready Clients"),
+                                                                            WaitingClients[i].first, WaitingClients[i].second);
+
+                                        if( bytessended == -1){
+                                            QMessageBox::warning(this, "Error",
+                                                                 Server->errorString(),
+                                                                 QMessageBox::Ok);
+                                        }
+
+                                        WaitingClients.remove(i);
+                                        DesNumber = DestNumber[i];
+                                        DestNumber.remove(i);
+                                        canSend = false;
+                                        break;
+                                    }
+                                }
+                            }
+                        }else{
+                            NewClients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
+                        }
+                    }else{
+                        qint64 bytessended = Server->writeDatagram(QByteArray("Cannot Auth"),
+                                                            sendDir, sendPort);
+
+                        if( bytessended == -1){
+                            QMessageBox::warning(this, "Error",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        }
+                    }
+                }
+            }else{
+                qint64 bytessended = Server->writeDatagram(QByteArray("Already LogIn"),
+                                                    sendDir, sendPort);
+
+                if( bytessended == -1){
+                    QMessageBox::warning(this, "Error",
+                                         Server->errorString(),
+                                         QMessageBox::Ok);
+                }
+            }
+        }else if(data.startsWith("Register")){
+            data.remove(0, data.indexOf(":")+2);
+            QString name(data);
+
+            name.remove(name.indexOf("/"), name.size());
+
+            QString pass(data);
+
+            pass.remove(0, pass.indexOf("/")+1);
+
+            bool found = false;
+            for(auto Name: ClientsNames){
+                if(Name == name){
+                    found = true;
+                }
+            }
+
+            if(!found){
+                QSqlQuery query(Database);
+
+                query.prepare("INSERT INTO Clients "
+                              "VALUES(:name, :pass);");
+                query.bindValue(":name", name);
+                query.bindValue(":pass", pass);
+
+                if(!query.exec()){
+                    qint64 bytessended = Server->writeDatagram(QByteArray("Cannot Register"),
+                                                        sendDir, sendPort);
+
+                    if( bytessended == -1){
+                        QMessageBox::warning(this, "Error",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    }
+                }else{
+                    qint64 bytessended = Server->writeDatagram(QByteArray("Connected client ")
+                                                        .append(Server->localAddress().toString())
+                                                        .append("::").append(Server->localPort()),
+                                                        sendDir, sendPort);
+
+                    if( bytessended == -1){
+                        QMessageBox::warning(this, "Error",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    }
+
+                    ClientsNames.push_back(name);
+
+                    if(canSend){
+                        Clients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
+                        ClientNumber++;
+
+                        if(WaitingClients.size()>0){
+                            for(int i=0; i<WaitingClients.size(); i++){
+                                if((ClientNumber>=(DestNumber[i]+1))&&canSend){
+                                    bytessended = Server->writeDatagram(QByteArray("Ready Clients"),
+                                                                        WaitingClients[i].first, WaitingClients[i].second);
+
+                                    if( bytessended == -1){
+                                        QMessageBox::warning(this, "Error",
+                                                             Server->errorString(),
+                                                             QMessageBox::Ok);
+                                    }
+
+                                    WaitingClients.remove(i);
+                                    DesNumber = DestNumber[i];
+                                    DestNumber.remove(i);
+                                    canSend = false;
+                                    break;
+                                }
+                            }
+                        }
+                    }else{
+                        NewClients.push_back(QPair<QHostAddress,int>(sendDir, sendPort));
+                    }
+                }
+            }else{
+                qint64 bytessended = Server->writeDatagram(QByteArray("Already LogIn"),
+                                                    sendDir, sendPort);
+
+                if( bytessended == -1){
+                    QMessageBox::warning(this, "Error",
+                                         Server->errorString(),
+                                         QMessageBox::Ok);
                 }
             }
         }else if(data.startsWith("Ready Send")){
@@ -182,6 +363,7 @@ void MainWindow::Read()
             for(int i=0; i<Clients.size() && !found; i++){
                 if((Clients[i].first == sendDir)&&(Clients[i].second == sendPort)){
                     Clients.remove(i);
+                    ClientsNames.remove(i);
                     found = true;
                 }
             }

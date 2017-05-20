@@ -71,23 +71,9 @@ MainWindow::MainWindow(QWidget *parent) :
         this->close();
     });
 
-    QTimer *time = new QTimer();
-    time->setInterval(1);
-    connect(time, &QTimer::timeout, this, [=](){
-        this->setEnabled(false);
-        LogIn.show();
-        LogIn.setEnabled(true);
-
-        time->deleteLater();
-    });
-
-    time->start();
-
     RecieveSeq = 0;
 
     Nack = false;
-
-    perder = true;
 }
 
 MainWindow::~MainWindow()
@@ -194,6 +180,56 @@ void MainWindow::Read()
             ui->statusBar->showMessage(QString("Connected to: %1::%2")
                                        .arg(sendDir.toString())
                                        .arg(sendPort), QMessageBox::Ok);
+            if(TryRegister){
+                QMessageBox::information(this, "Register",
+                                         "Registered succesfully",
+                                         QMessageBox::Ok);
+            }
+        }else if(data.startsWith("Need Auth")){
+            connected = true;
+            this->setEnabled(false);
+            LogIn.show();
+            LogIn.setEnabled(true);
+        }else if(data.startsWith("Cannot Auth")){
+            ui->ConnectButton->setEnabled(true);
+            ui->PortNumber->setEnabled(true);
+            ui->ServerAddress->setEnabled(true);
+            ui->ServerPort->setEnabled(true);
+            ui->ConnectButton->setText("Connect");
+            ui->statusBar->showMessage("");
+            QMessageBox::warning(this, "Bad auth",
+                                     "User or Password incorrect",
+                                     QMessageBox::Ok);
+        }else if(data.startsWith("Cannot Register")){
+            ui->ConnectButton->setEnabled(true);
+            ui->PortNumber->setEnabled(true);
+            ui->ServerAddress->setEnabled(true);
+            ui->ServerPort->setEnabled(true);
+            ui->ConnectButton->setText("Connect");
+            ui->statusBar->showMessage("");
+            QMessageBox::warning(this, "Bad auth",
+                                     "Cannot register now, try it again later",
+                                     QMessageBox::Ok);
+        }else if(data.startsWith("Cannot LogIn")){
+            ui->ConnectButton->setEnabled(true);
+            ui->PortNumber->setEnabled(true);
+            ui->ServerAddress->setEnabled(true);
+            ui->ServerPort->setEnabled(true);
+            ui->ConnectButton->setText("Connect");
+            ui->statusBar->showMessage("");
+            QMessageBox::warning(this, "Bad auth",
+                                     "Cannot login now, try it again later",
+                                     QMessageBox::Ok);
+        }else if(data.startsWith("Already LogIn")){
+            ui->ConnectButton->setEnabled(true);
+            ui->PortNumber->setEnabled(true);
+            ui->ServerAddress->setEnabled(true);
+            ui->ServerPort->setEnabled(true);
+            ui->ConnectButton->setText("Connect");
+            ui->statusBar->showMessage("");
+            QMessageBox::warning(this, "Bad auth",
+                                     "Cannot login, account already logged",
+                                     QMessageBox::Ok);
         }else if(data.startsWith("Ready Clients")){
             ui->SourceDirAddress->setEnabled(false);
             ui->SourceFindDirButton->setEnabled(false);
@@ -299,7 +335,7 @@ void MainWindow::Read()
                     Seq.remove(0, Seq.indexOf(":")+1);
                     data.remove(0, data.indexOf("/")+1);
 
-                    if(RecieveSeq == Seq.toLongLong() && (RecieveSeq != 10013 || !perder)){
+                    if(RecieveSeq == Seq.toLongLong()){
                         if(Nack){
                             Nack = false;
                         }
@@ -334,7 +370,6 @@ void MainWindow::Read()
                             }
                         }
                     }else{
-                        perder = false;
                         QByteArray result("");
 
                         if(Nack){
@@ -557,9 +592,30 @@ void MainWindow::TTerminated()
     canUpdateDDir = true;
 }
 
-void MainWindow::Name(QString name)
+void MainWindow::Name(QChar option, QString name, QString pass)
 {
     UserName = name;
+    qint64 bytessended;
+
+    if(option == 'L'){
+        bytessended = Client->writeDatagram(QByteArray("LogIn: ").append(name)
+                                                   .append("/").append(pass),
+                                                   QHostAddress(ui->ServerAddress->text()),
+                                                   quint16(ui->ServerPort->value()));
+    }else if(option == 'R'){
+        TryRegister = true;
+        bytessended = Client->writeDatagram(QByteArray("Register: ").append(name)
+                                                   .append("/").append(pass),
+                                                   QHostAddress(ui->ServerAddress->text()),
+                                                   quint16(ui->ServerPort->value()));
+    }
+
+    if( bytessended == -1){
+        QMessageBox::warning(this, "Error",
+                             Client->errorString(),
+                             QMessageBox::Ok);
+    }
+
     this->setEnabled(true);
 }
 

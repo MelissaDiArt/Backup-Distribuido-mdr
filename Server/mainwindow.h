@@ -6,6 +6,8 @@
 #include <QMessageBox>
 #include <QPair>
 #include <syslog.h>
+#include <QSqlDatabase>
+#include <QSqlQuery>
 
 namespace Ui {
 class MainWindow;
@@ -39,6 +41,9 @@ private:
     QTimer KeepAlive;
     bool WaitingKeepAlive;
     QTimer MaxTimeAlive;
+
+    QSqlDatabase Database;
+    QVector<QString> ClientsNames;
 };
 
 #endif // MAINWINDOW_H

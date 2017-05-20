@@ -32,7 +32,7 @@ private:
     //Var comprobacion
     bool Ok;
 
-    void check();
+    void check(QChar option);
 
 protected:
     //Sobreescribir
@@ -41,7 +41,7 @@ protected:
 signals:
 
     //Salida normal
-    void Name(QString name);
+    void Name(QChar option, QString name, QString pass);
 
     //Salida cerrar programa
     void FinishNoName();
