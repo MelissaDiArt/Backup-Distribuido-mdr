@@ -1,20 +1,16 @@
 ﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent,  quint16 clientPort, QString serverAddress, quint16 serverPort, QString sourceDir, QString destinationDir) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
-    QIcon icon("../Client/data/32x32/Client.png");
-    this->setWindowIcon(icon);
-
     ui->PortNumber->setMinimum(1024);
     ui->PortNumber->setMaximum(65536);
 
     ui->ServerPort->setMinimum(1024);
-    ui->ServerPort->setMaximum(65536);    
+    ui->ServerPort->setMaximum(65536);
 
     ServerAddOk = true;
     canUpdateDir = true;
@@ -41,6 +37,47 @@ MainWindow::MainWindow(QWidget *parent) :
 
     SourceDir.setPath(sourceDirAddress);
     DestinationDir.setPath(destinationDirAddress);
+
+    if(clientPort != 0) ui->PortNumber->setValue(clientPort);
+    if(serverPort != 0) ui->ServerPort->setValue(serverPort);
+    if(serverAddress != "") ui->ServerAddress->setText(serverAddress);
+    if(sourceDir != ""){
+        QDir dir(sourceDir);
+
+        if(!dir.exists()){
+            QMessageBox::warning(this, "Error",
+                                 "Directory doesn't exists",
+                                 QMessageBox::Ok);
+        }else{
+            if(sourceDir.size() != 0){
+                SourceDir.setPath(sourceDir);
+                ui->SourceDirAddress->setText(sourceDir);
+            }else{
+                QMessageBox::warning(this, "Error",
+                                     "Destination directory cannot be empty",
+                                     QMessageBox::Ok);
+            }
+        }
+    }
+
+    if(destinationDir != ""){
+        QDir dir(destinationDir);
+
+        if(!dir.exists()){
+            QMessageBox::warning(this, "Error",
+                                 "Directory doesn't exists",
+                                 QMessageBox::Ok);
+        }else{
+            if(destinationDir.size() != 0){
+                DestinationDir.setPath(destinationDir);
+                ui->DestinationDirAddress->setText(destinationDir);
+            }else{
+                QMessageBox::warning(this, "Error",
+                                     "Destination directory cannot be empty",
+                                     QMessageBox::Ok);
+            }
+        }
+    }
 
     Client = new QUdpSocket(this);
 
@@ -74,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
     RecieveSeq = 0;
 
     Nack = false;
+    TryRegister = false;
 }
 
 MainWindow::~MainWindow()

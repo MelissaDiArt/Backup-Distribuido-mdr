@@ -6,6 +6,7 @@
 #include <QFileDialog>
 #include <QLocale>
 #include <QIcon>
+#include <iostream>
 
 #include "progresswindow.h"
 #include "readfile.h"
@@ -20,7 +21,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0, quint16 clientPort = 0, QString serverAddress = "", quint16 serverPort = 0, QString sourceDir = "", QString destinationDir = "");
     ~MainWindow();
 
 private slots:
