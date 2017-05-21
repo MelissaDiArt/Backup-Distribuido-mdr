@@ -57,10 +57,32 @@ void go_Demonio(char *argv[])
 
 int main(int argc, char *argv[])
 {
-    go_Demonio(argv);
+    bool gui = false;
+    bool error = false;
+    for(int i=1; i<argc && !error; i++){
+        if(QString(argv[i]) == "-d"){
+            gui = true;
+        }else if(QString(argv[i]) == "--help"){
+            std::cout << "Usage: -d (demo version with GUI)" << std::endl;
+            error = true;
+        }else{
+            std::cout << "Unrecognized option " << argv[i] << std::endl
+                      << "Usage: -d (demo version with GUI)" << std::endl;
+            error = true;
+        }
+    }
+
     QApplication a(argc, argv);
-    MainWindow w;
-    w.show();
-    return a.exec();
+
+    if(!error){
+        MainWindow w(0, gui);
+
+        if(gui)
+            w.show();
+        else
+            go_Demonio(argv);
+
+        return a.exec();
+    }
 }
 

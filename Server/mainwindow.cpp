@@ -1,16 +1,18 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent, bool gui) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    GUI(gui)
 {
-    ui->setupUi(this);
+    if(GUI){
+        ui = new Ui::MainWindow;
+        ui->setupUi(this);
+        ui->PortNumber->setMinimum(1024);
+        ui->PortNumber->setMaximum(65536);
+    }
 
     ClientNumber = 0;
-
-    ui->PortNumber->setMinimum(1024);
-    ui->PortNumber->setMaximum(65536);
 
     Database = QSqlDatabase::addDatabase("QSQLITE", "Auth");
     Database.setDatabaseName("ServerAuth");
@@ -28,7 +30,11 @@ MainWindow::MainWindow(QWidget *parent) :
             }
         }
     }else{
-        QMessageBox::warning(this, "Database", "Cannot open or create the database", QMessageBox::Ok);
+        if(GUI)
+            QMessageBox::warning(this, "Database", "Cannot open or create the database", QMessageBox::Ok);
+        else
+            syslog(LOG_ERR, "Cannot open or create the database\n");
+        this->close();
     }
 
     Server = new QUdpSocket(this);
@@ -52,10 +58,13 @@ MainWindow::MainWindow(QWidget *parent) :
             canSend = false;
             for(auto client : Clients){
                 qint64 bytessended = Server->writeDatagram(QByteArray("Keep Alive?"), client.first, client.second);
-                if( bytessended == -1){
-                    QMessageBox::warning(this, "Error",
-                                         Server->errorString(),
-                                         QMessageBox::Ok);
+                if(bytessended == -1){
+                    if(GUI)
+                        QMessageBox::warning(this, "Error sending Keep Alive",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    else
+                        syslog(LOG_WARNING, "Error sending Keep Alive: %s\n", Server->errorString().toLatin1().data());
                 }
             }
             MaxTimeAlive.start();
@@ -69,7 +78,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    delete ui;
+    if(GUI){
+        delete ui;
+    }
+
     delete Server;
     closelog();
 }
@@ -109,10 +121,13 @@ void MainWindow::Read()
                 bytessended = Server->writeDatagram(QByteArray("Need Auth"),
                                                     sendDir, sendPort);
 
-                if( bytessended == -1){
-                    QMessageBox::warning(this, "Error",
-                                         Server->errorString(),
-                                         QMessageBox::Ok);
+                if(bytessended == -1){
+                    if(GUI)
+                        QMessageBox::warning(this, "Error sending Need Auth",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    else
+                        syslog(LOG_WARNING, "Error sending Need Auth: %s\n", Server->errorString().toLatin1().data());
                 }
             }
         }else if(data.startsWith("LogIn")){
@@ -144,10 +159,13 @@ void MainWindow::Read()
                     qint64 bytessended = Server->writeDatagram(QByteArray("Cannot LogIn"),
                                                         sendDir, sendPort);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending Cannot Login",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending Cannot Login: %s\n", Server->errorString().toLatin1().data());
                     }
                 }else{
                     if(!query.seek(1) && query.seek(0)){
@@ -158,10 +176,13 @@ void MainWindow::Read()
                                                             .append("::").append(Server->localPort()),
                                                             sendDir, sendPort);
 
-                        if( bytessended == -1){
-                            QMessageBox::warning(this, "Error",
-                                                 Server->errorString(),
-                                                 QMessageBox::Ok);
+                        if(bytessended == -1){
+                            if(GUI)
+                                QMessageBox::warning(this, "Error sending Connected Client",
+                                                     Server->errorString(),
+                                                     QMessageBox::Ok);
+                            else
+                                syslog(LOG_WARNING, "Error sending Connected Client: %s\n", Server->errorString().toLatin1().data());
                         }
 
                         if(canSend){
@@ -174,10 +195,13 @@ void MainWindow::Read()
                                         bytessended = Server->writeDatagram(QByteArray("Ready Clients"),
                                                                             WaitingClients[i].first, WaitingClients[i].second);
 
-                                        if( bytessended == -1){
-                                            QMessageBox::warning(this, "Error",
-                                                                 Server->errorString(),
-                                                                 QMessageBox::Ok);
+                                        if(bytessended == -1){
+                                            if(GUI)
+                                                QMessageBox::warning(this, "Error sending Ready Clients",
+                                                                     Server->errorString(),
+                                                                     QMessageBox::Ok);
+                                            else
+                                                syslog(LOG_WARNING, "Error sending Ready Clients: %s\n", Server->errorString().toLatin1().data());
                                         }
 
                                         WaitingClients.remove(i);
@@ -195,10 +219,13 @@ void MainWindow::Read()
                         qint64 bytessended = Server->writeDatagram(QByteArray("Cannot Auth"),
                                                             sendDir, sendPort);
 
-                        if( bytessended == -1){
-                            QMessageBox::warning(this, "Error",
-                                                 Server->errorString(),
-                                                 QMessageBox::Ok);
+                        if(bytessended == -1){
+                            if(GUI)
+                                QMessageBox::warning(this, "Error sending Cannot Auth",
+                                                     Server->errorString(),
+                                                     QMessageBox::Ok);
+                            else
+                                syslog(LOG_WARNING, "Error sending Cannot Auth: %s\n", Server->errorString().toLatin1().data());
                         }
                     }
                 }
@@ -206,10 +233,13 @@ void MainWindow::Read()
                 qint64 bytessended = Server->writeDatagram(QByteArray("Already LogIn"),
                                                     sendDir, sendPort);
 
-                if( bytessended == -1){
-                    QMessageBox::warning(this, "Error",
-                                         Server->errorString(),
-                                         QMessageBox::Ok);
+                if(bytessended == -1){
+                    if(GUI)
+                        QMessageBox::warning(this, "Error sending Already LogIn",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    else
+                        syslog(LOG_WARNING, "Error sending Already LogIn: %s\n", Server->errorString().toLatin1().data());
                 }
             }
         }else if(data.startsWith("Register")){
@@ -241,10 +271,13 @@ void MainWindow::Read()
                     qint64 bytessended = Server->writeDatagram(QByteArray("Cannot Register"),
                                                         sendDir, sendPort);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending Cannot Register",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending Cannot Register: %s\n", Server->errorString().toLatin1().data());
                     }
                 }else{
                     qint64 bytessended = Server->writeDatagram(QByteArray("Connected client ")
@@ -252,10 +285,13 @@ void MainWindow::Read()
                                                         .append("::").append(Server->localPort()),
                                                         sendDir, sendPort);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending Connected Client",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending Connected Client: %s\n", Server->errorString().toLatin1().data());
                     }
 
                     ClientsNames.push_back(name);
@@ -270,10 +306,13 @@ void MainWindow::Read()
                                     bytessended = Server->writeDatagram(QByteArray("Ready Clients"),
                                                                         WaitingClients[i].first, WaitingClients[i].second);
 
-                                    if( bytessended == -1){
-                                        QMessageBox::warning(this, "Error",
-                                                             Server->errorString(),
-                                                             QMessageBox::Ok);
+                                    if(bytessended == -1){
+                                        if(GUI)
+                                            QMessageBox::warning(this, "Error sending Ready Clients",
+                                                                 Server->errorString(),
+                                                                 QMessageBox::Ok);
+                                        else
+                                            syslog(LOG_WARNING, "Error sending Ready Clients: %s\n", Server->errorString().toLatin1().data());
                                     }
 
                                     WaitingClients.remove(i);
@@ -292,10 +331,13 @@ void MainWindow::Read()
                 qint64 bytessended = Server->writeDatagram(QByteArray("Already LogIn"),
                                                     sendDir, sendPort);
 
-                if( bytessended == -1){
-                    QMessageBox::warning(this, "Error",
-                                         Server->errorString(),
-                                         QMessageBox::Ok);
+                if(bytessended == -1){
+                    if(GUI)
+                        QMessageBox::warning(this, "Error sending Already LogIn",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    else
+                        syslog(LOG_WARNING, "Error sending Already LogIn: %s\n", Server->errorString().toLatin1().data());
                 }
             }
         }else if(data.startsWith("Ready Send")){
@@ -304,10 +346,13 @@ void MainWindow::Read()
             if((ClientNumber>=(DNumber+1))&&canSend){
                 qint64 bytessended = Server->writeDatagram(QByteArray("Ready Clients"), sendDir, sendPort);
 
-                if( bytessended == -1){
-                    QMessageBox::warning(this, "Error",
-                                         Server->errorString(),
-                                         QMessageBox::Ok);
+                if(bytessended == -1){
+                    if(GUI)
+                        QMessageBox::warning(this, "Error sending Ready Clients",
+                                             Server->errorString(),
+                                             QMessageBox::Ok);
+                    else
+                        syslog(LOG_WARNING, "Error sending Ready Clients: %s\n", Server->errorString().toLatin1().data());
                 }
 
                 DesNumber = DNumber;
@@ -324,12 +369,14 @@ void MainWindow::Read()
                 if((Clients[i].first != sendDir)||(Clients[i].second != sendPort)){
                     bytessended = Server->writeDatagram(data, Clients[i].first, Clients[i].second);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending Sended message",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending Sended message: %s\n", Server->errorString().toLatin1().data());
                     }
-
                     j++;
                 }
             }
@@ -345,10 +392,13 @@ void MainWindow::Read()
                 for(auto client : Clients){
                     bytessended = Server->writeDatagram(QByteArray("Keep Alive?"), client.first, client.second);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending Keep Alive",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending Keep Alive: %s\n", Server->errorString().toLatin1().data());
                     }
                 }
                 MaxTimeAlive.start();
@@ -402,10 +452,13 @@ void MainWindow::Read()
                 if((Clients[i].first != sendDir)||(Clients[i].second != sendPort)){
                     bytessended = Server->writeDatagram(data, Clients[i].first, Clients[i].second);
 
-                    if( bytessended == -1){
-                        QMessageBox::warning(this, "Error",
-                                             Server->errorString(),
-                                             QMessageBox::Ok);
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending files",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending files: %s\n", Server->errorString().toLatin1().data());
                     }
 
                     j++;

@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0, bool gui = true);
     ~MainWindow();
 
 private slots:
@@ -27,6 +27,9 @@ private slots:
     
 private:
     Ui::MainWindow *ui;
+
+    bool GUI;
+
     QUdpSocket* Server;
 
     QVector<QPair<QHostAddress, int> > Clients;
