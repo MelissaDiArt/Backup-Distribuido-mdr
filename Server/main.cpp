@@ -60,18 +60,38 @@ int main(int argc, char *argv[])
 {
     bool gui = false;
     bool error = false;
+    quint16 port = 0;
+
     for(int i=1; i<argc && !error; i++){
         if(QString(argv[i]) == "-d"){
             gui = true;
+        }else if(QString(argv[i]) == "-p"){
+            if(i+1 < argc){
+                if(atoi(argv[i+1]) >= 1024 && atoi(argv[i+1]) <= 65535){
+                    port = atoi(argv[i+1]);
+                }else{
+                    std::cout << "Invalid port, port has to be greater or equal than 1024 and lesser or equal 65535" << std::endl;
+                    error = true;
+                }
+            }else{
+                std::cout << "Port needed: -p [port], port has to be greater or equal than 1024 and lesser or equal 65535" << std::endl;
+                error = true;
+            }
+            i++;
         }else if(QString(argv[i]) == "--help"){
-            std::cout << "Usage: -d (demo version with GUI)" << std::endl;
+            std::cout << "Usage: -d (demo version with GUI) -p [Port]" << std::endl;
             error = true;
         }else{
-            std::cout << "Unrecognized option " << argv[i] << std::endl
-                      << "Usage: -d (demo version with GUI)" << std::endl;
+            std::cout << "Unrecognized option " << argv[i] << std::endl << "Usage: -d (demo version with GUI) -p [Port]" << std::endl;
             error = true;
         }
     }
+
+    if(!gui && port == 0){
+        std::cout << "Port needed: -p [port], port has to be greater or equal than 1024 and lesser or equal 65535" << std::endl;
+        error = true;
+    }
+
     char *aaa[1];
     aaa[0] = argv[0];
     int x = 1;
@@ -79,7 +99,7 @@ int main(int argc, char *argv[])
 
 
     if(!error){
-        MainWindow w(0, gui);
+        MainWindow w(0, gui, port);
 
         if(gui)
             w.show();

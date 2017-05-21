@@ -18,7 +18,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(QWidget *parent = 0, bool gui = true);
+    explicit MainWindow(QWidget *parent = 0, bool gui = true, quint16 port = 0);
     ~MainWindow();
     unsigned int get_clients(void);
     QPair<QHostAddress,int> get_this_client(int indice);
@@ -33,10 +33,13 @@ private slots:
     void on_ConnectButton_clicked();
     void Read();
     
+    void on_PortNumber_valueChanged(int arg1);
+
 private:
     Ui::MainWindow *ui;
 
     bool GUI;
+    quint16 SelfPort;
 
     QUdpSocket* Server;
 

@@ -1,9 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent, bool gui) :
+MainWindow::MainWindow(QWidget *parent, bool gui, quint16 port) :
     QMainWindow(parent),
-    GUI(gui)
+    GUI(gui),
+    SelfPort(port)
 {
     if(GUI){
         ui = new Ui::MainWindow;
@@ -36,6 +37,14 @@ MainWindow::MainWindow(QWidget *parent, bool gui) :
             syslog(LOG_ERR, "Cannot open or create the database\n");
         this->close();
     }
+
+    if(port)
+        SelfPort = port;
+    else
+        SelfPort = 1024;
+
+    if(GUI)
+        ui->PortNumber->setValue(SelfPort);
 
     Server = new QUdpSocket(this);
 
@@ -74,6 +83,26 @@ MainWindow::MainWindow(QWidget *parent, bool gui) :
     });
     KeepAlive.start();
 
+    if(port){
+        if(Server->bind(QHostAddress::LocalHost, port)){
+            connect(Server, &QUdpSocket::readyRead, this, &MainWindow::Read);
+            if(GUI){
+                ui->ConnectButton->setText("Connected");
+                ui->ConnectButton->setEnabled(false);
+                ui->PortNumber->setEnabled(false);
+                ui->statusBar->showMessage(QString("Connected to: %1::%2")
+                                           .arg(Server->localAddress().toString())
+                                           .arg(Server->localPort()));
+            }else{
+                syslog(LOG_NOTICE, "Connected to: %s::%d\n", Server->localAddress().toString().toLatin1().data(), (int)Server->localPort());
+            }
+        }else{
+            if(GUI)
+                QMessageBox::warning(this, "Error", Server->errorString(), QMessageBox::Ok);
+            else
+                syslog(LOG_ERR, "Error binding: %s\n", Server->errorString().toLatin1().data());
+        }
+    }
 }
 
 MainWindow::~MainWindow()
@@ -119,6 +148,7 @@ QString MainWindow::get_this_pending_client_name(QPair<QHostAddress, int> client
         }
     }
 
+    return "";
 }
 
 bool MainWindow::is_occupied()
@@ -128,12 +158,20 @@ bool MainWindow::is_occupied()
 
 void MainWindow::on_ConnectButton_clicked()
 {
-    if(Server->bind(QHostAddress::LocalHost, ui->PortNumber->value())){
+    quint16 p;
+    if(SelfPort == 0)
+        p = ui->PortNumber->value();
+    else
+        p = SelfPort;
+
+    if(Server->bind(QHostAddress::LocalHost, p)){
         connect(Server, &QUdpSocket::readyRead, this, &MainWindow::Read);
         ui->ConnectButton->setText("Connected");
         ui->ConnectButton->setEnabled(false);
         ui->PortNumber->setEnabled(false);
-        ui->statusBar->showMessage(QString("Connected to: %1::%2").arg(Server->localAddress().toString()).arg(Server->localPort()));
+        ui->statusBar->showMessage(QString("Connected to: %1::%2")
+                                   .arg(Server->localAddress().toString())
+                                   .arg(Server->localPort()));
     }else{
         QMessageBox::warning(this, "Error", Server->errorString(), QMessageBox::Ok);
     }
@@ -506,4 +544,9 @@ void MainWindow::Read()
             }
         }
     }
+}
+
+void MainWindow::on_PortNumber_valueChanged(int arg1)
+{
+    SelfPort = arg1;
 }
