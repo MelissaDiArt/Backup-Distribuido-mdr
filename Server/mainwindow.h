@@ -20,6 +20,14 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0, bool gui = true);
     ~MainWindow();
+    unsigned int get_clients(void);
+    QPair<QHostAddress,int> get_this_client(int indice);
+    QString get_this_client_name(int indice);
+    unsigned int get_pending_clients();
+    QPair<QHostAddress,int> get_this_pending_client(int indice);
+    QString get_this_pending_client_name(QPair<QHostAddress,int> cliente);
+    bool is_occupied();
+
 
 private slots:
     void on_ConnectButton_clicked();

@@ -86,6 +86,46 @@ MainWindow::~MainWindow()
     closelog();
 }
 
+unsigned int MainWindow::get_clients()
+{
+    return Clients.size();
+}
+
+QPair<QHostAddress, int> MainWindow::get_this_client(int indice)
+{
+    return Clients.at(indice);
+}
+
+QString MainWindow::get_this_client_name(int indice)
+{
+    return ClientsNames.at(indice);
+}
+
+unsigned int MainWindow::get_pending_clients()
+{
+    return WaitingClients.size();
+}
+
+QPair<QHostAddress, int> MainWindow::get_this_pending_client(int indice)
+{
+    return WaitingClients.at(indice);
+}
+
+QString MainWindow::get_this_pending_client_name(QPair<QHostAddress, int> cliente)
+{
+    for(int j=0; j<Clients.size();j++){
+        if(cliente == Clients.at(j)){
+            return(ClientsNames.at(j));
+        }
+    }
+
+}
+
+bool MainWindow::is_occupied()
+{
+    return canSend;
+}
+
 void MainWindow::on_ConnectButton_clicked()
 {
     if(Server->bind(QHostAddress::LocalHost, ui->PortNumber->value())){

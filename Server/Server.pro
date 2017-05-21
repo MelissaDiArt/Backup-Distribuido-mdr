@@ -59,3 +59,9 @@ unix {
     script.files += $${TARGET}
     ##Asociar el fichero al arranque
 }
+
+message('Including config files')
+include($$PWD/QttpServer/config/config.pri)
+
+message('Including core files')
+include($$PWD/QttpServer/core.pri)
