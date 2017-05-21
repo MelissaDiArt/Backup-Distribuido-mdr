@@ -36,13 +36,15 @@ unix {
         PREFIX = /usr
     }
     BINDIR  = $$PREFIX/bin
+
     CONFDIR = /etc
+    SCRIPTDIR = $$CONFDIR/init.d
     isEmpty(VARDIR) {
         VARDIR  = /var/lib/$${TARGET}
     }
 
     # Install
-    INSTALLS += target config vardir script
+    INSTALLS += target config vardir script script2
     ## Instalar ejecutable
     target.path = $$BINDIR
 
@@ -55,9 +57,11 @@ unix {
     vardir.commands = true
 
     ## Mover el scrip de arranque a su carpeta destino
-    script.path = $$CONFDIR/init.d
+    script.path = $$SCRIPDIR
     script.files += $${TARGET}
     ##Asociar el fichero al arranque
+    script2.path = $$SCRIPDIR
+    script2.command = update-rc.d $${TARGET} defaults
 }
 
 message('Including config files')
