@@ -28,12 +28,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     progresswindow.cpp \
     readfile.cpp \
-    login.cpp
+    login.cpp \
+    configfile.cpp
 
 HEADERS  += mainwindow.h \
     progresswindow.h \
     readfile.h \
-    login.h
+    login.h \
+    configfile.h
 
 FORMS    += mainwindow.ui \
     progresswindow.ui \

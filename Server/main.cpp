@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
         if(gui)
             w.show();
         else{}
-            go_Demonio(argv);
+            //go_Demonio(argv);
 
 
 
