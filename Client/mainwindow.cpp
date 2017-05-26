@@ -38,6 +38,8 @@ MainWindow::MainWindow(QWidget *parent,  quint16 clientPort, QString serverAddre
     SourceDir.setPath(sourceDirAddress);
     DestinationDir.setPath(destinationDirAddress);
 
+    setConfigFile("/etc/Client.conf");
+
     if(clientPort != 0) ui->PortNumber->setValue(clientPort);
     if(serverPort != 0) ui->ServerPort->setValue(serverPort);
     if(serverAddress != "") ui->ServerAddress->setText(serverAddress);
@@ -807,4 +809,96 @@ void MainWindow::sortHandler(int index)
 {
     model->setSort(index, static_cast<QHeaderView*>(sender())->sortIndicatorOrder());
     model->select();
+}
+
+void MainWindow::on_ImportButton_clicked()
+{
+    QString fileUrl = QFileDialog::getOpenFileName(this, "Select config file", "/home", "Config File (*.conf)");
+    if(fileUrl != "")
+        setConfigFile(fileUrl);
+}
+
+void MainWindow::on_ExportButton_clicked()
+{
+    QVector<QPair<QString,QVector<QPair<QString,QString> > > > data;
+    data.push_back(QPair<QString,QVector<QPair<QString,QString> > >
+                  ("Client",QVector<QPair<QString,QString>>
+                  (1,QPair<QString,QString>("port",QString().setNum(ui->PortNumber->value())))));
+
+    data.push_back(QPair<QString,QVector<QPair<QString,QString> > >
+                  ("Server",QVector<QPair<QString,QString>>
+                  (1,QPair<QString,QString>("address",ui->ServerAddress->text()))));
+
+    data[1].second.push_back(QPair<QString,QString>("port",QString().setNum(ui->ServerPort->value())));
+
+    data.push_back(QPair<QString,QVector<QPair<QString,QString> > >
+                  ("Directories",QVector<QPair<QString,QString>>
+                  (1,QPair<QString,QString>("source",SourceDir.absolutePath()))));
+
+    data[2].second.push_back(QPair<QString,QString>("destination",DestinationDir.absolutePath()));
+
+    if(Configurationini.WriteConfigFile(data)){
+        QMessageBox::warning(this, "Error",
+                             "Error exporting Config file",
+                             QMessageBox::Ok);
+    }else{
+        QMessageBox::warning(this, "Success",
+                             "Configuration exported",
+                             QMessageBox::Ok);
+    }
+}
+
+void MainWindow::setConfigFile(QString fileUrl)
+{
+    if(Configurationini.ReadConfigFile(fileUrl)){
+        QMessageBox::warning(this, "Error",
+                             "Error importing Config file",
+                             QMessageBox::Ok);
+    }else{
+        QString tmp;
+        tmp = Configurationini.getValue("Client","port");
+        if(tmp != "Not Found") ui->PortNumber->setValue(tmp.toShort());
+        tmp = Configurationini.getValue("Server","port");
+        if(tmp != "Not Found") ui->ServerPort->setValue(tmp.toShort());
+        tmp = Configurationini.getValue("Server","address");
+        if(tmp != "Not Found") ui->ServerAddress->setText(tmp);
+        tmp = Configurationini.getValue("Directories","source");
+        if(tmp != "Not Found"){
+            QDir dir(tmp);
+
+            if(!dir.exists()){
+                QMessageBox::warning(this, "Error",
+                                     "Directory doesn't exists",
+                                     QMessageBox::Ok);
+            }else{
+                if(tmp.size() != 0){
+                    SourceDir.setPath(tmp);
+                    ui->SourceDirAddress->setText(tmp);
+                }else{
+                    QMessageBox::warning(this, "Error",
+                                         "Destination directory cannot be empty",
+                                         QMessageBox::Ok);
+                }
+            }
+        }
+        tmp = Configurationini.getValue("Directories","destination");
+        if(tmp != "Not Found"){
+            QDir dir(tmp);
+
+            if(!dir.exists()){
+                QMessageBox::warning(this, "Error",
+                                     "Directory doesn't exists",
+                                     QMessageBox::Ok);
+            }else{
+                if(tmp.size() != 0){
+                    DestinationDir.setPath(tmp);
+                    ui->DestinationDirAddress->setText(tmp);
+                }else{
+                    QMessageBox::warning(this, "Error",
+                                         "Destination directory cannot be empty",
+                                         QMessageBox::Ok);
+                }
+            }
+        }
+    }
 }

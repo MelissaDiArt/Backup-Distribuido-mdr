@@ -17,6 +17,7 @@
 #include "progresswindow.h"
 #include "readfile.h"
 #include "login.h"
+#include "configfile.h"
 
 namespace Ui {
 class MainWindow;
@@ -50,6 +51,10 @@ private slots:
 
     //Modificar direccion del servidor
     void on_ServerAddress_editingFinished();
+
+    void on_ImportButton_clicked();
+
+    void on_ExportButton_clicked();
 
 public slots:
 
@@ -117,6 +122,10 @@ private:
     QVector<QString> Querys;
     void sortHandler(int index);
 
+    //Asigna los valores del archivo de configuracion
+    void setConfigFile(QString fileUrl);
+
+    ConfigFile Configurationini;
 signals:
     //Enviar directorio
     void SendS(QString Dir, QString Name);

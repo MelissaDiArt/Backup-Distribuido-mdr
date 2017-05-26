@@ -69,7 +69,6 @@ private:
 
     void setConfigFile(QString fileUrl);
 
-    ConfigFile Configini;
     ConfigFile Configurationini;
 };
 

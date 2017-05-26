@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>453</width>
-    <height>395</height>
+    <height>430</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -179,6 +179,24 @@
       </widget>
      </widget>
     </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout_5">
+      <item>
+       <widget class="QPushButton" name="ImportButton">
+        <property name="text">
+         <string>Import config</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="ExportButton">
+        <property name="text">
+         <string>Export config</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -187,7 +205,7 @@
      <x>0</x>
      <y>0</y>
      <width>453</width>
-     <height>17</height>
+     <height>22</height>
     </rect>
    </property>
   </widget>
