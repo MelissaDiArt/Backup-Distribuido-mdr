@@ -31,6 +31,7 @@ signals:
     void UpdateCurrentSizeRW(qint64 size);
     void UpdateCurrentFileSizeRW(qint64 size);
     void UpdateName(QString name);
+    void insert(QString name, qint64 size);
 
 public slots:
 

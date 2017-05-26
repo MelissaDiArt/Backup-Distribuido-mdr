@@ -7,6 +7,12 @@
 #include <QLocale>
 #include <QIcon>
 #include <iostream>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlTableModel>
+#include <QtSql/QSqlQuery>
+#include <QSqlError>
+#include <QDateTime>
+
 
 #include "progresswindow.h"
 #include "readfile.h"
@@ -63,6 +69,8 @@ public slots:
     //cambiar nombre
     void Name(QChar option, QString name, QString pass);
 
+    void Insert(QString name, qint64 size);
+
 private:
     Ui::MainWindow *ui;
 
@@ -103,6 +111,12 @@ private:
 
     //Permisos
     QFile::Permissions ConvPermision(QString perm);
+
+    QSqlDatabase db;
+    QSqlTableModel *model;
+    QVector<QString> Querys;
+    void sortHandler(int index);
+
 signals:
     //Enviar directorio
     void SendS(QString Dir, QString Name);

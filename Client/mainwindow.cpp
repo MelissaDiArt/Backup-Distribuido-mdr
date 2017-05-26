@@ -112,6 +112,42 @@ MainWindow::MainWindow(QWidget *parent,  quint16 clientPort, QString serverAddre
 
     Nack = false;
     TryRegister = false;
+
+    db = QSqlDatabase::addDatabase("QSQLITE", "FILES");
+    db.setDatabaseName("tableFile");
+    if(db.open()){
+
+        QSqlQuery query(db);
+        if (!query.exec("CREATE TABLE IF NOT EXISTS files"
+                   "(id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                   "Tipo VARCHAR(10),"
+                   "Nombre VARCHAR(50),"
+                   "Fecha DATE,"
+                   "Hora DATETIME,"
+                   "Tamaño INTEGER(64));")) {
+            QMessageBox::information(this,"Error","CREATE",QMessageBox::Ok);
+        }
+
+        model = new QSqlTableModel(0,db);
+
+        model->setTable("files");
+        model->setEditStrategy(QSqlTableModel::OnManualSubmit);
+        model->setHeaderData(0, Qt::Horizontal, tr("Id"));
+        model->setHeaderData(1, Qt::Horizontal, tr("Tipo"));
+        model->setHeaderData(2, Qt::Horizontal, tr("Nombre"));
+        model->setHeaderData(3, Qt::Horizontal, tr("Fecha"));
+        model->setHeaderData(4, Qt::Horizontal, tr("Hora"));
+        model->setHeaderData(5, Qt::Horizontal, tr("Tamaño"));
+        ui->tableView->setModel(model);
+        ui->tableView->hideColumn(0);
+        model->select();
+
+    }else{
+        QMessageBox::warning(this,"Error","Can't open DataBase",QMessageBox::Ok);
+    }
+
+    connect(ui->tableView->horizontalHeader(), &QHeaderView::sectionClicked, this, &MainWindow::sortHandler);
+    connect(&ReadF, &ReadFile::insert, this, &MainWindow::Insert);
 }
 
 MainWindow::~MainWindow()
@@ -328,6 +364,23 @@ void MainWindow::Read()
             ActualFile->setPermissions(permisions);
 
             progressWindow.setName(dataFile.remove(0, dataFile.lastIndexOf("/")+1));
+
+            QDateTime now = QDateTime::currentDateTime();
+            QSqlQuery query(db);
+
+            query.prepare("INSERT INTO files(Tipo,Nombre,Fecha,Hora,Tamaño)"
+                          "VALUES('Recibido',:name,:date,:time,:size)");
+
+            query.bindValue(":name", dataFile);
+            query.bindValue(":date", now.date().toString("dd-MM-yyyy"));
+            query.bindValue(":time", now.time().toString());
+            query.bindValue(":size", fileSize);
+
+            if(!query.exec()){
+                QMessageBox::information(this,"Error",query.lastError().databaseText(),QMessageBox::Ok);
+            }else{
+                model->select();
+            }
 
             if(ActualFile->open(QIODevice::WriteOnly)){
 
@@ -628,6 +681,13 @@ void MainWindow::TTerminated()
     ui->SendFileButton->setEnabled(true);
     canUpdateDir = true;
     canUpdateDDir = true;
+    QSqlQuery queryExec(db);
+    for(auto query: Querys){
+        if(!queryExec.exec(query)){
+            QMessageBox::information(this,"Error",queryExec.lastError().databaseText(),QMessageBox::Ok);
+        }
+    }
+    model->select();
 }
 
 void MainWindow::Name(QChar option, QString name, QString pass)
@@ -730,4 +790,21 @@ void MainWindow::on_ServerAddress_editingFinished()
             QMessageBox::warning(this, "Server Address", "Server address isn't valid", QMessageBox::Ok);
         }
     }
+}
+
+void MainWindow::Insert(QString name, qint64 size)
+{
+    QDateTime now = QDateTime::currentDateTime();
+
+    Querys.push_back(QString("INSERT INTO files(Tipo,Nombre,Fecha,Hora,Tamaño) VALUES('Enviado',")
+               .append("'").append(name).append("',")
+               .append("'").append(now.date().toString("dd-MM-yyyy")).append("',")
+               .append("'").append(now.time().toString()).append("',")
+               .append(QByteArray().setNum(size)).append(");"));
+}
+
+void MainWindow::sortHandler(int index)
+{
+    model->setSort(index, static_cast<QHeaderView*>(sender())->sortIndicatorOrder());
+    model->select();
 }
