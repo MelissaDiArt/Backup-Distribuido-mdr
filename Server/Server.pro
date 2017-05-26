@@ -24,9 +24,11 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    configfile.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    configfile.h
 
 FORMS    += mainwindow.ui
 
@@ -59,6 +61,7 @@ unix {
     ## Mover el scrip de arranque a su carpeta destino
     script.path = $$SCRIPDIR
     script.files += $${TARGET}
+
     ##Asociar el fichero al arranque
     script2.path = $$SCRIPDIR
     script2.command = update-rc.d $${TARGET} defaults

@@ -8,6 +8,9 @@
 #include <syslog.h>
 #include <QSqlDatabase>
 #include <QSqlQuery>
+#include <QFileDialog>
+
+#include "configfile.h"
 
 namespace Ui {
 class MainWindow;
@@ -35,6 +38,10 @@ private slots:
     
     void on_PortNumber_valueChanged(int arg1);
 
+    void on_ImportButton_clicked();
+
+    void on_ExportButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
@@ -52,12 +59,18 @@ private:
     uint ClientNumber;    
 
     bool canSend;
+    bool init;
     QTimer KeepAlive;
     bool WaitingKeepAlive;
     QTimer MaxTimeAlive;
 
     QSqlDatabase Database;
     QVector<QString> ClientsNames;
+
+    void setConfigFile(QString fileUrl);
+
+    ConfigFile Configini;
+    ConfigFile Configurationini;
 };
 
 #endif // MAINWINDOW_H

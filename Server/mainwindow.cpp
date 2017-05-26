@@ -15,6 +15,8 @@ MainWindow::MainWindow(QWidget *parent, bool gui, quint16 port) :
 
     ClientNumber = 0;
 
+    init = true;
+
     Database = QSqlDatabase::addDatabase("QSQLITE", "Auth");
     Database.setDatabaseName("ServerAuth");
 
@@ -38,10 +40,9 @@ MainWindow::MainWindow(QWidget *parent, bool gui, quint16 port) :
         this->close();
     }
 
-    if(port)
-        SelfPort = port;
-    else
-        SelfPort = 1024;
+    setConfigFile("/etc/Distributed-Backup-Server.conf");
+
+    if(port) SelfPort = port;
 
     if(GUI)
         ui->PortNumber->setValue(SelfPort);
@@ -549,4 +550,59 @@ void MainWindow::Read()
 void MainWindow::on_PortNumber_valueChanged(int arg1)
 {
     SelfPort = arg1;
+}
+
+void MainWindow::on_ImportButton_clicked()
+{
+    QString fileUrl = QFileDialog::getOpenFileName(this, "Select config file", "/home", "Config File (*.conf)");
+    if(fileUrl != "")
+        setConfigFile(fileUrl);
+}
+
+void MainWindow::on_ExportButton_clicked()
+{
+    QVector<QPair<QString,QVector<QPair<QString,QString> > > > data;
+    data.push_back(QPair<QString,QVector<QPair<QString,QString> > >
+                  ("Server",QVector<QPair<QString,QString>>
+                  (1,QPair<QString,QString>("port",QString().setNum(SelfPort)))));
+
+    if(Configurationini.WriteConfigFile(data)){
+        if(GUI)
+            QMessageBox::warning(this, "Error",
+                                 "Error exporting Config file",
+                                 QMessageBox::Ok);
+    }else{
+        if(GUI)
+            QMessageBox::warning(this, "Success",
+                                 "Configuration exported",
+                                 QMessageBox::Ok);
+    }
+}
+
+void MainWindow::setConfigFile(QString fileUrl)
+{
+    if(Configurationini.ReadConfigFile(fileUrl)){
+        if(GUI)
+            QMessageBox::warning(this, "Error",
+                                 "Error importing Config file",
+                                 QMessageBox::Ok);
+        else
+            syslog(LOG_WARNING, "Error importing Config file");
+    }else{
+        QString tmp;
+        tmp = Configurationini.getValue("Server","port");
+        if(tmp != "Not Found"){
+            SelfPort = tmp.toShort();
+            if(GUI){
+                ui->PortNumber->setValue(SelfPort);
+            }
+        }
+
+        if(GUI && !init){
+            QMessageBox::warning(this, "Success",
+                                 "Configuration imported",
+                                 QMessageBox::Ok);
+            init = false;
+        }
+    }
 }
