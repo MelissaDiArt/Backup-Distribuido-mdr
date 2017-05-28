@@ -22,7 +22,7 @@ Hemos diseñado nuestro propio sistema de backup distribuido.
 
 Hemos diseñado dos programas: un servidor y un cliente de backup.
 
-###El servidor:
+### El servidor:
 ![Servidor](./Imagenes/Server.png)
 
 *  Se encarga de escuchar las peticiones de los clientes en un puerto seleccionado en la GUI o linea de comandos antes de conectar.
@@ -31,12 +31,12 @@ Hemos diseñado dos programas: un servidor y un cliente de backup.
 *  Se ha implementado además su versión en modo demonio. Este cuenta con un archivo syslog que tiene mensajes informativos acerca del estado del servidor.
 *  Se ha implementado una base de datos en la que se mantiene un registro de usuarios que pueden iniciar sesión para transferir archivos.
 
-###La ventana de Log In:
+### La ventana de Log In:
 ![Ventana de LogIn](./Imagenes/Login.png)
 
 *  Esta ventana aparecera al abrir el cliente y permitirá el registro y el inicio de sesión introduciendo un nombre de usuario y una contraseña.
 
-###El cliente:
+### El cliente:
 ![Cliente](./Imagenes/Cliente.png)
 
 *  Al mismo tiempo que el servidor esta escuchando se pueden estar ejecutando múltiples clientes en distintas máquinas.
@@ -51,21 +51,22 @@ Hemos diseñado dos programas: un servidor y un cliente de backup.
 
 ![History](./Imagenes/Historial.png)
  
-###La ventana de progreso:
+### La ventana de progreso:
 ![Ventana de progreso](./Imagenes/Progreso.png)
 
 Durante la transferencia se muestra una ventana con:
 *  El nombre del archivo que se está copiando actualmente.
 *  Una barra de progreso global de toda la copia y otra barra de progreso sobre la copia del archivo actual.
 
-###Opciones de configuración:
+### Opciones de configuración:
 
 *  Tanto usuario como cliente cuentan con un botón en modo ui para exportar una configuración guardada en seciones anteriores, en caso de no seleccionar ninguna tendremos una configuración por defecto.
  
-###Controlar el servidor
+### Controlar el servidor
 
 *  Se han implementado urls para la manipulación del servidor y el control de este pudiendo consultar el estado del servidor, usuarios conectados... y pudiendo realizar acciones como parar, pausar ... la actividad del servidor.
 *  Se ha implementado además una url para consultar las estadísticas del servidor.
 
 
-Proyecto realizado por el grupo mdrgroup para la asignatura sistemas operativos avanzados- 3º Ingeniería informática Universidad de La Laguna
+Proyecto realizado por el grupo mdrgroup para la asignatura Sistemas Operativos Avanzados 
+3º Ingeniería informática Universidad de La Laguna
