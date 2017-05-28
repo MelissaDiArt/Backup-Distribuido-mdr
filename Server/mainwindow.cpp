@@ -152,6 +152,33 @@ QString MainWindow::get_this_pending_client_name(QPair<QHostAddress, int> client
     return "";
 }
 
+bool MainWindow::user_action(QString user, QString action)
+{
+    if(user=="server" && action == "disconnect"){
+        if(Clients.size()>0){
+            for(int j=0;j<Clients.size();j++){
+                Server->writeDatagram(QByteArray("You have been disconnected"),Clients.at(j).first, Clients.at(j).second);
+            }
+        }
+        ui->ConnectButton->setText("Connect");
+        ui->ConnectButton->setEnabled(true);
+        ui->PortNumber->setEnabled(true);
+        ui->statusBar->showMessage(QString("Disconnected by HTTP Request"));
+        Server->close();
+        return true;
+    }
+
+    for(int i=0;i<ClientsNames.size();i++){
+        if(ClientsNames.at(i)==user){
+            if(action == "disconnect"){
+                Server->writeDatagram(QByteArray("You have been disconnected"),Clients.at(i).first, Clients.at(i).second);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 bool MainWindow::is_occupied()
 {
     return canSend;
@@ -447,7 +474,8 @@ void MainWindow::Read()
             for(int i=0,j=0; i<Clients.size() && j<DesNumber; i++){
                 if((Clients[i].first != sendDir)||(Clients[i].second != sendPort)){
                     bytessended = Server->writeDatagram(data, Clients[i].first, Clients[i].second);
-
+                    inc_nBytesReceived(bytessended);
+                    inc_nFiles();
                     if(bytessended == -1){
                         if(GUI)
                             QMessageBox::warning(this, "Error sending Sended message",
@@ -577,6 +605,40 @@ void MainWindow::on_ExportButton_clicked()
                                  "Configuration exported",
                                  QMessageBox::Ok);
     }
+}
+
+void MainWindow::inc_nFiles()
+{
+    nFiles++;
+}
+
+int MainWindow::get_nFiles()
+{
+    return nFiles;
+}
+
+void MainWindow::inc_nBytesReceived(int inc)
+{
+    nBytesReceived += inc;
+}
+
+int MainWindow::get_nBytesReceived()
+{
+    return nBytesReceived;
+}
+
+void MainWindow::insert_transfer_time(int time)
+{
+    transfer_time.push_back(time);
+}
+
+int MainWindow::get_total_transfer_time()
+{
+    int tmp = 0;
+    for(int i = 0; i<transfer_time.size();i++){
+        tmp +=transfer_time.at(i);
+    }
+    return tmp;
 }
 
 void MainWindow::setConfigFile(QString fileUrl)

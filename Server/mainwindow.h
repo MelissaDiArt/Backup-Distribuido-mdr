@@ -29,7 +29,14 @@ public:
     unsigned int get_pending_clients();
     QPair<QHostAddress,int> get_this_pending_client(int indice);
     QString get_this_pending_client_name(QPair<QHostAddress,int> cliente);
+    bool user_action(QString user, QString accion);
     bool is_occupied();
+    void inc_nFiles();
+    int get_nFiles();
+    void inc_nBytesReceived(int inc);
+    int get_nBytesReceived(void);
+    void insert_transfer_time(int time);
+    int get_total_transfer_time();
 
 
 private slots:
@@ -41,6 +48,7 @@ private slots:
     void on_ImportButton_clicked();
 
     void on_ExportButton_clicked();
+
 
 private:
     Ui::MainWindow *ui;
@@ -70,6 +78,10 @@ private:
     void setConfigFile(QString fileUrl);
 
     ConfigFile Configurationini;
+
+    int nFiles;
+    int nBytesReceived;
+    QVector<int> transfer_time;
 };
 
 #endif // MAINWINDOW_H

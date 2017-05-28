@@ -266,6 +266,15 @@ void MainWindow::Read()
             this->setEnabled(false);
             LogIn.show();
             LogIn.setEnabled(true);
+        }else if(data.startsWith("You have been disconnected")){
+            ui->ConnectButton->setText("Connect");
+            ui->ConnectButton->setEnabled(true);
+            ui->PortNumber->setEnabled(true);
+            ui->ServerAddress->setEnabled(true);
+            ui->ServerPort->setEnabled(true);
+            ui->statusBar->showMessage(QString("You have been disconnected by HTTP Request")
+                                       , QMessageBox::Ok);
+            Client->close();
         }else if(data.startsWith("Cannot Auth")){
             ui->ConnectButton->setEnabled(true);
             ui->PortNumber->setEnabled(true);

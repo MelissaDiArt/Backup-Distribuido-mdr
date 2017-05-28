@@ -137,17 +137,42 @@ int main(int argc, char *argv[])
               }else{
                     json["Estado del servidor"] = "Libre";
               }
+            });
+
+            auto action_estadisticas = httpSvr->createAction([&](qttp::HttpData& data) {
+              // Form the JSON content and let the framework handle the rest.
+              QJsonObject& json = data.getResponse().getJson();
+              json["Numero de paquetes de datos enviados"] = w.get_nFiles();
+              json["Cantidad de datos enviados"] = w.get_nBytesReceived();
+              json["Tiempo medio de envio de paquetes de información"] = w.get_total_transfer_time() / w.get_nFiles();
+              json["Tamaño medio de paquetes de información"] = w.get_nBytesReceived() / w.get_nFiles();
+            });
+
+            auto action_usuario = httpSvr->createAction([&](qttp::HttpData& data) {
+
+              QJsonValue user = data.getRequest().getJson()["user"];
+              QJsonValue action = data.getRequest().getJson()["action"];
+
+              QJsonObject& json = data.getResponse().getJson();
+              QString accion("Accion: ");
+              accion.append(action.toString());
+              QString usuario(" sobre usuario: ");
+              usuario.append(user.toString());
+              if(w.user_action(user.toString(),action.toString())){
+                    json[accion + usuario] = "Exito";
+              }else{
+                     json[accion + usuario] = "Fallo";
+              }
+
 
             });
 
-          // Register the action to handle http GET for the path "/usuarios-conectados".
+          // Register the action to handle http GET.
           action_usuarios->registerRoute(qttp::HttpMethod::GET, "/usuarios-conectados");
-
-          // Register the action to handle http GET for the path "/usuarios-pendientes".
           action_pendientes->registerRoute(qttp::HttpMethod::GET, "/usuarios-pendientes");
-
-          // Register the action to handle http GET for the path "uso".
           action_uso->registerRoute(qttp::HttpMethod::GET, "/uso");
+          action_estadisticas->registerRoute(qttp::HttpMethod::GET, "/estadisticas");
+          action_usuario->registerRoute(qttp::HttpMethod::GET, "/usuarios/:user/:action");
 
 
           // Libuv runs in its own thread.
