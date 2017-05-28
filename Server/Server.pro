@@ -59,11 +59,11 @@ unix {
     vardir.commands = true
 
     ## Mover el scrip de arranque a su carpeta destino
-    script.path = $$SCRIPDIR
+    script.path = $$SCRIPTDIR
     script.files += $${TARGET}
 
     ##Asociar el fichero al arranque
-    script2.path = $$SCRIPDIR
+    script2.path = $$SCRIPTDIR
     script2.command = update-rc.d $${TARGET} defaults
 }
 
