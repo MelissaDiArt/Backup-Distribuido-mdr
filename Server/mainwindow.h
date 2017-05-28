@@ -79,6 +79,8 @@ private:
 
     ConfigFile Configurationini;
 
+    QTimer timer;
+
     int nFiles;
     int nBytesReceived;
     QVector<int> transfer_time;

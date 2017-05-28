@@ -14,6 +14,8 @@ MainWindow::MainWindow(QWidget *parent, bool gui, quint16 port) :
     }
 
     ClientNumber = 0;
+    nBytesReceived = 0;
+    nFiles = 0;
 
     init = true;
 
@@ -448,6 +450,8 @@ void MainWindow::Read()
             }
         }else if(data.startsWith("Ready Send")){
             uint DNumber = data.remove(0, data.indexOf(":")+1).toUInt();
+            timer.setInterval(300000);
+            timer.start();
 
             if((ClientNumber>=(DNumber+1))&&canSend){
                 qint64 bytessended = Server->writeDatagram(QByteArray("Ready Clients"), sendDir, sendPort);
@@ -470,12 +474,10 @@ void MainWindow::Read()
         }else if(data.startsWith("Sended")){
 
             qint64 bytessended;
-
+            insert_transfer_time(300000 - timer.remainingTime());
             for(int i=0,j=0; i<Clients.size() && j<DesNumber; i++){
                 if((Clients[i].first != sendDir)||(Clients[i].second != sendPort)){
                     bytessended = Server->writeDatagram(data, Clients[i].first, Clients[i].second);
-                    inc_nBytesReceived(bytessended);
-                    inc_nFiles();
                     if(bytessended == -1){
                         if(GUI)
                             QMessageBox::warning(this, "Error sending Sended message",
@@ -550,6 +552,31 @@ void MainWindow::Read()
                     WaitingClients.remove(i);
                     DestNumber.remove(i);
                     found = true;
+                }
+            }
+        }else if(data.startsWith("File Path: ")){
+            qint64 bytessended;
+            inc_nFiles();
+            QByteArray dataSize(data);
+            dataSize.remove(dataSize.lastIndexOf("Permision:")-1, data.size() - (dataSize.lastIndexOf("Permision:")-1))
+                    .remove(0, dataSize.lastIndexOf("size:")+6);
+
+            qint64 fileSize = dataSize.toLongLong();
+            inc_nBytesReceived(fileSize);
+            for(int i=0,j=0; i<Clients.size() && j<DesNumber; i++){
+                if((Clients[i].first != sendDir)||(Clients[i].second != sendPort)){
+                    bytessended = Server->writeDatagram(data, Clients[i].first, Clients[i].second);
+
+                    if(bytessended == -1){
+                        if(GUI)
+                            QMessageBox::warning(this, "Error sending files",
+                                                 Server->errorString(),
+                                                 QMessageBox::Ok);
+                        else
+                            syslog(LOG_WARNING, "Error sending files: %s\n", Server->errorString().toLatin1().data());
+                    }
+
+                    j++;
                 }
             }
         }else{
