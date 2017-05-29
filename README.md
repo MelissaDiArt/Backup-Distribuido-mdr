@@ -9,8 +9,11 @@ Hemos diseñado nuestro propio sistema de backup distribuido.
 
 ## Instalación
 
- 1. Realizar sudo make install en la carpeta make de Cliente y Servidor o , en caso del cliente instalar el .deb contenido en la carpeta make.
- 3. El programa ya está instalado.
+ 1. Posicionarnos dentro del directorio del proyecto y utilizar $git submodule update --init
+ 2. Entrar al directorio "QttpServer" y utilizar $git submodule update --init
+ 3. Compilar el proyecto "qttpserver.pro" para crear las librerías necesarias.
+ 4. Realizar sudo make install en la carpeta make de Cliente y Servidor o , en caso del cliente instalar el .deb contenido en la carpeta make.
+ 5. El programa ya está instalado.
  
 ## Como ejecutar
 
