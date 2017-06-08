@@ -1,4 +1,4 @@
-#soa-distributed-backup versión grupal 
+# soa-distributed-backup versión grupal 
 
 Hemos diseñado nuestro propio sistema de backup distribuido.
 
